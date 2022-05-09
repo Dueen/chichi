@@ -1,4 +1,5 @@
 use logos::Logos;
+use std::fmt::{Display, Formatter};
 
 #[derive(Logos, Debug, Eq, PartialEq, Hash)]
 pub enum Token {
@@ -52,7 +53,8 @@ pub enum Token {
     UAcute,
     #[token("ü")]
     UUmlaut,
-
+    #[token("ñ")]
+    Ntilde,
 
     // konsonante
     #[token("b")]
@@ -102,7 +104,13 @@ pub enum Token {
     Error,
 }
 
-pub fn generate(input: &str) -> Vec<Token> {
+impl Display for Token {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
+}
+
+pub fn generate_tokens(input: &str) -> Vec<Token> {
     Token::lexer(input).collect()
 }
 

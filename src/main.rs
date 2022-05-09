@@ -1,28 +1,28 @@
-use std::fs::read_to_string;
+use rodio::{Decoder, OutputStream, Sink};
+use std::fs::{read_to_string, File};
 use std::io::BufReader;
 
 mod lexer;
-use lexer::generate;
+use lexer::generate_tokens;
 
 mod store;
-use store::get_sounds;
+use store::get_sound_path;
 
 fn main() {
-    let sounds = get_sounds();
-
-    let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
-    let sink = rodio::Sink::try_new(&stream_handle).unwrap();
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let sink = Sink::try_new(&stream_handle).unwrap();
 
     let path = std::path::PathBuf::from(format!("{}/example.txt", env!("CARGO_MANIFEST_DIR")));
-    let contents = read_to_string(path).unwrap().to_lowercase();
+    let contents = read_to_string(path).unwrap_or_default().to_lowercase();
 
-    let tokens = generate(&contents);
+    let tokens = generate_tokens(&contents);
 
     // queue up all the sounds
     // TODO: use a match pattern to play the correct sound and catch errors
     for token in tokens {
-        let file = std::fs::File::open(sounds.get(&token).unwrap()).unwrap();
-        let source = rodio::Decoder::new(BufReader::new(file)).unwrap();
+        let path = get_sound_path(&token);
+        let file = File::open(path).unwrap();
+        let source = Decoder::new(BufReader::new(file)).unwrap();
         sink.append(source);
     }
 

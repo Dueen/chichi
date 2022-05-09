@@ -1,8 +1,8 @@
 use crate::lexer::Token;
 use std::collections::HashMap;
 
-pub fn get_sounds() -> HashMap<Token, String> {
-    HashMap::from([
+pub fn get_sound_path(token: &Token) -> String {
+    let stored_sounds = HashMap::from([
         (Token::A, "assets/A.wav".to_string()),
         (Token::B, "assets/B.wav".to_string()),
         (Token::C, "assets/C.wav".to_string()),
@@ -29,7 +29,13 @@ pub fn get_sounds() -> HashMap<Token, String> {
         (Token::X, "assets/X.wav".to_string()),
         (Token::Y, "assets/Y.wav".to_string()),
         (Token::Z, "assets/Z.wav".to_string()),
-    ])
+    ]);
+
+    if stored_sounds.contains_key(token) {
+        return stored_sounds.get(token).unwrap().to_string();
+    } else {
+        return "assets/error.wav".to_string();
+    };
 }
 
 mod tests {
@@ -39,13 +45,11 @@ mod tests {
         use super::*;
         use std::io::BufReader;
 
-        let sounds = get_sounds();
+        let path = get_sound_path(&Token::A);
 
-        // test all the wav files in the assets directory
-        for (_, path) in sounds {
-            let file = std::fs::File::open(path).unwrap();
-            let mut decoder = rodio::Decoder::new(BufReader::new(file)).unwrap();
-            assert!(decoder.any(|x| x != 0)); // Assert not all zeros
-        }
+        // TODO: test all the wav files in the assets directory
+        let file = std::fs::File::open(path).unwrap();
+        let mut decoder = rodio::Decoder::new(BufReader::new(file)).unwrap();
+        assert!(decoder.any(|x| x != 0)); // Assert not all zeros
     }
 }
