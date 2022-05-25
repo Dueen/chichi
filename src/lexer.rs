@@ -1,202 +1,249 @@
-use logos::Logos;
-use std::fmt::{Display, Formatter};
+use std::path::PathBuf;
 
-#[derive(Logos, Debug, Eq, PartialEq, Hash)]
-pub enum Token {
-    // util
-    #[regex(r"\s+")]
-    Whitespace,
-
-    #[regex(r"\d+")]
-    Number,
-
-    #[token(".")]
+#[derive(Debug, Clone, PartialEq)]
+pub enum TokenKind {
+    // utils
+    Unknown,
+    Space,
     Punto,
 
     // kombina
-    #[token("ch")]
     Ch,
-    #[token("dj")]
     Dj,
-    #[token("zj")]
     Zj,
-    #[token("sh")]
     Sh,
-    #[token("ks")]
     Ks,
 
     // vokal
-    #[token("a")]
     A,
-    #[token("e")]
     E,
-    #[token("i")]
     I,
-    #[token("o")]
     O,
-    #[token("u")]
     U,
+
     // aksènt
-    #[token("è")]
+    AGrave,
+    AAcute,
     EGrave,
-    #[token("é")]
     EAcute,
-    #[token("í")]
     IAcute,
-    #[token("ò")]
     OGrave,
-    #[token("ó")]
     OAcute,
-    #[token("ù")]
     UGrave,
-    #[token("ú")]
     UAcute,
-    #[token("ü")]
     UUmlaut,
-    #[token("ñ")]
     Ntilde,
 
     // konsonante
-    #[token("b")]
     B,
-    #[token("c")] // 👀
-    C,
-    #[token("d")]
     D,
-    #[token("f")]
     F,
-    #[token("g")]
     G,
-    #[token("h")]
     H,
-    #[token("j")] // 👀
     J,
-    #[token("k")]
     K,
-    #[token("l")]
     L,
-    #[token("m")]
     M,
-    #[token("n")]
     N,
-    #[token("p")]
     P,
-    #[token("q")] // 👀
     Q,
-    #[token("r")]
     R,
-    #[token("s")]
     S,
-    #[token("t")]
     T,
-    #[token("v")]
     V,
-    #[token("w")]
     W,
-    #[token("x")] // 👀
-    X,
-    #[token("y")]
     Y,
-    #[token("z")]
     Z,
-
-    #[error]
-    Error,
 }
 
-impl Display for Token {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.to_string())
+#[derive(Debug, Clone)]
+pub struct Token {
+    pub kind: TokenKind,
+    pub path: PathBuf,
+}
+
+pub struct Lexer {}
+
+impl Lexer {
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn tokenize(&mut self, content: &String) -> Vec<Token> {
+        let mut tokens = Vec::new();
+        let mut chars = content.chars().peekable();
+
+        let mut push = |kind: TokenKind, path: &str| {
+            let path = std::path::PathBuf::from(format!("{}/{}/{}{}", env!("CARGO_MANIFEST_DIR"), "assets", path.to_lowercase(), ".wav"));
+            tokens.push(Token {
+                kind,
+                path,
+            });
+        };
+
+        while let (Some(x), y) = (chars.next(), chars.peek()) {
+            match (x, y) {
+                // kombina
+                ('c', Some('h')) => {
+                    push(TokenKind::Ch, "A"); // FIXME: add CH sound
+                    chars.next();
+                }
+                ('d', Some('j')) => {
+                    push(TokenKind::Dj, "A"); // FIXME: add DJ sound
+                    chars.next();
+                }
+                ('z', Some('j')) => {
+                    push(TokenKind::Zj, "A"); // FIXME: add ZJ sound
+                    chars.next();
+                }
+                ('s', Some('h')) => {
+                    push(TokenKind::Sh, "A"); // FIXME: add SH sound
+                    chars.next();
+                }
+                ('k', Some('s')) => {
+                    push(TokenKind::Ks, "A"); // FIXME: add KS sound
+                    chars.next();
+                }
+
+                // vokal
+                ('a', _) => push(TokenKind::A, "A"),
+                ('e', _) => push(TokenKind::E, "E"),
+                ('i', _) => push(TokenKind::I, "I"),
+                ('o', _) => push(TokenKind::O, "O"),
+                ('u', _) => push(TokenKind::U, "U"),
+
+                // aksènt
+                ('à', _) => push(TokenKind::AGrave, "A"), // FIXME: AGrave
+                ('á', _) => push(TokenKind::AAcute, "A"), // FIXME: AAcute
+                ('è', _) => push(TokenKind::EGrave, "E"), // FIXME: EGrave
+                ('é', _) => push(TokenKind::EAcute, "E"), // FIXME: EAcute
+                ('í', _) => push(TokenKind::IAcute, "I"), // FIXME: IAcute
+                ('ò', _) => push(TokenKind::OGrave, "O"), // FIXME: OGrave
+                ('ó', _) => push(TokenKind::OAcute, "O"), // FIXME: OAcute
+                ('ù', _) => push(TokenKind::UGrave, "U"), // FIXME: UGrave
+                ('ú', _) => push(TokenKind::UAcute, "U"), // FIXME: UAcute
+                ('ü', _) => push(TokenKind::UUmlaut, "U"), // FIXME: UUmlaut
+                ('ñ', _) => push(TokenKind::Ntilde, "N"), // FIXME: Ntilde
+
+                // konsonante
+                ('b', _) => push(TokenKind::B, "B"),
+                ('d', _) => push(TokenKind::D, "D"),
+                ('f', _) => push(TokenKind::F, "F"),
+                ('g', _) => push(TokenKind::G, "G"),
+                ('h', _) => push(TokenKind::H, "H"),
+                ('j', _) => push(TokenKind::J, "J"),
+                ('k', _) => push(TokenKind::K, "K"),
+                ('l', _) => push(TokenKind::L, "L"),
+                ('m', _) => push(TokenKind::M, "M"),
+                ('n', _) => push(TokenKind::N, "N"),
+                ('p', _) => push(TokenKind::P, "P"),
+                ('q', _) => push(TokenKind::Q, "Q"),
+                ('r', _) => push(TokenKind::R, "R"),
+                ('s', _) => push(TokenKind::S, "S"),
+                ('t', _) => push(TokenKind::T, "T"),
+                ('v', _) => push(TokenKind::V, "V"),
+                ('w', _) => push(TokenKind::W, "W"),
+                ('x', _) => push(TokenKind::Ks, "X"), // TODO: X
+                ('y', _) => push(TokenKind::Y, "Y"),
+                ('z', _) => push(TokenKind::Z, "Z"),
+
+                // utils
+                (' ', _) => push(TokenKind::Space, "A"), // FIXME: Add space sound
+                ('.', _) => push(TokenKind::Punto, "A"), // FIXME: Add punto sound
+
+                _ => push(TokenKind::Unknown, "A"), // FIXME: Add unknown sound or error
+            }
+        }
+
+        tokens
     }
 }
 
-pub fn generate_tokens(input: &str) -> Vec<Token> {
-    Token::lexer(input).collect()
-}
+// TODO: Add tests
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
 
-    #[test]
-    fn it_can_tokenize_letters() {
-        let mut lexer = Token::lexer("abcdefghijklmnopqrstuvwxyz");
+//     #[test]
+//     fn it_can_tokenize_letters() {
+//         let mut lexer = Lexer::tokenize("abcdefghijklmnopqrstuvwxyz");
 
-        assert_eq!(lexer.next(), Some(Token::A));
-        assert_eq!(lexer.next(), Some(Token::B));
-        assert_eq!(lexer.next(), Some(Token::C));
-        assert_eq!(lexer.next(), Some(Token::D));
-        assert_eq!(lexer.next(), Some(Token::E));
-        assert_eq!(lexer.next(), Some(Token::F));
-        assert_eq!(lexer.next(), Some(Token::G));
-        assert_eq!(lexer.next(), Some(Token::H));
-        assert_eq!(lexer.next(), Some(Token::I));
-        assert_eq!(lexer.next(), Some(Token::J));
-        assert_eq!(lexer.next(), Some(Token::K));
-        assert_eq!(lexer.next(), Some(Token::L));
-        assert_eq!(lexer.next(), Some(Token::M));
-        assert_eq!(lexer.next(), Some(Token::N));
-        assert_eq!(lexer.next(), Some(Token::O));
-        assert_eq!(lexer.next(), Some(Token::P));
-        assert_eq!(lexer.next(), Some(Token::Q));
-        assert_eq!(lexer.next(), Some(Token::R));
-        assert_eq!(lexer.next(), Some(Token::S));
-        assert_eq!(lexer.next(), Some(Token::T));
-        assert_eq!(lexer.next(), Some(Token::U));
-        assert_eq!(lexer.next(), Some(Token::V));
-        assert_eq!(lexer.next(), Some(Token::W));
-        assert_eq!(lexer.next(), Some(Token::X));
-        assert_eq!(lexer.next(), Some(Token::Y));
-        assert_eq!(lexer.next(), Some(Token::Z));
-    }
+//         assert_eq!(lexer.next(), Some(Token::A));
+//         assert_eq!(lexer.next(), Some(Token::B));
+//         assert_eq!(lexer.next(), Some(Token::C));
+//         assert_eq!(lexer.next(), Some(Token::D));
+//         assert_eq!(lexer.next(), Some(Token::E));
+//         assert_eq!(lexer.next(), Some(Token::F));
+//         assert_eq!(lexer.next(), Some(Token::G));
+//         assert_eq!(lexer.next(), Some(Token::H));
+//         assert_eq!(lexer.next(), Some(Token::I));
+//         assert_eq!(lexer.next(), Some(Token::J));
+//         assert_eq!(lexer.next(), Some(Token::K));
+//         assert_eq!(lexer.next(), Some(Token::L));
+//         assert_eq!(lexer.next(), Some(Token::M));
+//         assert_eq!(lexer.next(), Some(Token::N));
+//         assert_eq!(lexer.next(), Some(Token::O));
+//         assert_eq!(lexer.next(), Some(Token::P));
+//         assert_eq!(lexer.next(), Some(Token::Q));
+//         assert_eq!(lexer.next(), Some(Token::R));
+//         assert_eq!(lexer.next(), Some(Token::S));
+//         assert_eq!(lexer.next(), Some(Token::T));
+//         assert_eq!(lexer.next(), Some(Token::U));
+//         assert_eq!(lexer.next(), Some(Token::V));
+//         assert_eq!(lexer.next(), Some(Token::W));
+//         assert_eq!(lexer.next(), Some(Token::X));
+//         assert_eq!(lexer.next(), Some(Token::Y));
+//         assert_eq!(lexer.next(), Some(Token::Z));
+//     }
 
-    // è é í ò ó
+//     // è é í ò ó
 
-    #[test]
-    fn it_can_tokenize_accented_letters() {
-        let mut lexer = Token::lexer("èéíòó");
+//     #[test]
+//     fn it_can_tokenize_accented_letters() {
+//         let mut lexer = Token::lexer("èéíòó");
 
-        assert_eq!(lexer.next(), Some(Token::EGrave));
-        assert_eq!(lexer.next(), Some(Token::EAcute));
-        assert_eq!(lexer.next(), Some(Token::IAcute));
-        assert_eq!(lexer.next(), Some(Token::OGrave));
-        assert_eq!(lexer.next(), Some(Token::OAcute));
-    }
+//         assert_eq!(lexer.next(), Some(Token::EGrave));
+//         assert_eq!(lexer.next(), Some(Token::EAcute));
+//         assert_eq!(lexer.next(), Some(Token::IAcute));
+//         assert_eq!(lexer.next(), Some(Token::OGrave));
+//         assert_eq!(lexer.next(), Some(Token::OAcute));
+//     }
 
-    //  CH DJ ZJ SH KS
+//     //  CH DJ ZJ SH KS
 
-    #[test]
-    fn it_can_tokenize_ch() {
-        let mut lexer = Token::lexer("ch");
+//     #[test]
+//     fn it_can_tokenize_ch() {
+//         let mut lexer = Token::lexer("ch");
 
-        assert_eq!(lexer.next(), Some(Token::Ch));
-    }
+//         assert_eq!(lexer.next(), Some(Token::Ch));
+//     }
 
-    #[test]
-    fn it_can_tokenize_dj() {
-        let mut lexer = Token::lexer("dj");
+//     #[test]
+//     fn it_can_tokenize_dj() {
+//         let mut lexer = Token::lexer("dj");
 
-        assert_eq!(lexer.next(), Some(Token::Dj));
-    }
+//         assert_eq!(lexer.next(), Some(Token::Dj));
+//     }
 
-    #[test]
-    fn it_can_tokenize_zj() {
-        let mut lexer = Token::lexer("zj");
+//     #[test]
+//     fn it_can_tokenize_zj() {
+//         let mut lexer = Token::lexer("zj");
 
-        assert_eq!(lexer.next(), Some(Token::Zj));
-    }
+//         assert_eq!(lexer.next(), Some(Token::Zj));
+//     }
 
-    #[test]
-    fn it_can_tokenize_sh() {
-        let mut lexer = Token::lexer("sh");
+//     #[test]
+//     fn it_can_tokenize_sh() {
+//         let mut lexer = Token::lexer("sh");
 
-        assert_eq!(lexer.next(), Some(Token::Sh));
-    }
+//         assert_eq!(lexer.next(), Some(Token::Sh));
+//     }
 
-    #[test]
-    fn it_can_tokenize_ks() {
-        let mut lexer = Token::lexer("ks");
+//     #[test]
+//     fn it_can_tokenize_ks() {
+//         let mut lexer = Token::lexer("ks");
 
-        assert_eq!(lexer.next(), Some(Token::Ks));
-    }
-}
+//         assert_eq!(lexer.next(), Some(Token::Ks));
+//     }
+// }
