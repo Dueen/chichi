@@ -74,11 +74,14 @@ impl Lexer {
         let mut chars = content.chars().peekable();
 
         let mut push = |kind: TokenKind, path: &str| {
-            let path = std::path::PathBuf::from(format!("{}/{}/{}{}", env!("CARGO_MANIFEST_DIR"), "assets", path.to_lowercase(), ".wav"));
-            tokens.push(Token {
-                kind,
-                path,
-            });
+            let path = std::path::PathBuf::from(format!(
+                "{}/{}/{}{}",
+                env!("CARGO_MANIFEST_DIR"),
+                "assets",
+                path.to_lowercase(),
+                ".wav"
+            ));
+            tokens.push(Token { kind, path });
         };
 
         while let (Some(x), y) = (chars.next(), chars.peek()) {
@@ -131,7 +134,6 @@ impl Lexer {
                 ('f', _) => push(TokenKind::F, "F"),
                 ('g', _) => push(TokenKind::G, "G"),
                 ('h', _) => push(TokenKind::H, "H"),
-                ('j', _) => push(TokenKind::J, "J"),
                 ('k', _) => push(TokenKind::K, "K"),
                 ('l', _) => push(TokenKind::L, "L"),
                 ('m', _) => push(TokenKind::M, "M"),
@@ -143,7 +145,6 @@ impl Lexer {
                 ('t', _) => push(TokenKind::T, "T"),
                 ('v', _) => push(TokenKind::V, "V"),
                 ('w', _) => push(TokenKind::W, "W"),
-                ('x', _) => push(TokenKind::Ks, "X"), // TODO: X
                 ('y', _) => push(TokenKind::Y, "Y"),
                 ('z', _) => push(TokenKind::Z, "Z"),
 
